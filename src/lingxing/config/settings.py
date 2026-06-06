@@ -1,15 +1,38 @@
-"""领星项目配置管理 —— 基于 Pydantic Settings 读取环境变量。"""
+"""领星项目配置管理 —— 基于 Pydantic Settings 读取环境变量。
+
+敏感字段 (lx_app_secret / lx_doc_secret / postgres_password / feishu_app_secret /
+feishu_bitable_app_token / feishu_*_webhook) 支持加密存储 —— ``.env`` 里写
+``enc:<fernet_token>``,加载时自动解密,业务代码不感知.
+
+详见 :mod:`lingxing.config.secrets`.
+"""
 
 from __future__ import annotations
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from lingxing.config.secrets import resolve
+
+
+# 需要解密处理的 secret 字段(在 .env 中可写明文或 enc: 前缀密文)
+_ENCRYPTED_FIELDS = (
+    "lx_app_secret",
+    "lx_doc_secret",
+    "postgres_password",
+    "feishu_app_secret",
+    "feishu_bitable_app_token",
+    "feishu_daily_webhook",
+    "feishu_alert_webhook",
+    "feishu_weekly_webhook",
+)
 
 
 class Settings(BaseSettings):
     # ---------- 领星开放平台 ----------
     lx_app_id: str
     lx_app_secret: str = Field(repr=False)
+    lx_doc_secret: str = Field(repr=False, default="")
     lx_api_base: str = "https://openapi.lingxing.com"
     lx_token_cache_key: str = "lx:access_token"
     lx_token_lock_key: str = "lx:token_lock"
@@ -78,6 +101,14 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore",
     )
+
+    # ----- secret 字段解密 -----
+    # mode="before" 在 Pydantic 验证前调,这样默认值(明文空串)和 .env 真值(密文)
+    # 都走同一路径;业务代码继续用 settings.lx_app_secret 等标准访问即可.
+    @field_validator(*_ENCRYPTED_FIELDS, mode="before")
+    @classmethod
+    def _decrypt_secrets(cls, v: str) -> str:
+        return resolve(v)
 
 
 settings = Settings()

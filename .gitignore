@@ -55,3 +55,5 @@ logs/
 .venv/
 .ruff_cache/
 .pytest_cache/
+# encrypt_env.py 生成的明文备份(同 .env,保护明文不进 commit)
+.env.bak
