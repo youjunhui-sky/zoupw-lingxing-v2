@@ -1,0 +1,63 @@
+# Listing删除商品标签
+
+## 接口信息
+
+| API Path                                          | 请求协议 | 请求方式 | [令牌桶容量](/docs/Guidance/newInstructions?id=_5-限流算法说明) |
+| :------------------------------------------------ | :------- | :------- | :----------------------------------------------------------- |
+| `/basicOpen/listingManage/removeListingAndTag` | HTTPS    | POST     | 1                                                            |
+
+## 请求参数
+
+| 参数名                    | 说明                                                         | 必填 | 类型     | 示例      |
+|:-----------------------| :----------------------------------------------------------- | :--- | :------- | :-------- |
+| bindDetail             | 配对信息                                                     | 是   | [array]  |           |
+| bindDetail>>sid        | 店铺id ，对应[查询亚马逊店铺列表](https://apidoc.lingxing.com/#/docs/BasicData/SellerLists)接口对应字段【sid】 | 是   | [int]    | 17        |
+| bindDetail>>relationId | msku，[查询亚马逊Listing](https://apidoc.lingxing.com/#/docs/Sale/Listing) 接口对应字段【seller_sku】 | 是   | [string] | HOLDER001 |
+| globalTagIds           | 标签id数组                                                   | 是   | [array]  |           ||
+
+## 请求示例
+
+``````
+{
+    "bindDetail": [
+        {
+            "sid": 104,
+            "relationId": "HOLDER001"
+        }
+    ],
+    "globalTagIds": [
+      "907398794822668566",
+      "907398794822668565"
+    ]
+   
+}
+``````
+
+
+
+## 返回结果
+
+| 参数名  | 说明 | 必填 | 类型       | 示例 |
+| :------------ | :------------ | :------------ |:---------| :------------ |
+|code|状态码，0 成功|是| [int]    |0|
+|message|消息提示|是| [string] |操作成功|
+|error_details|错误信息|是| [array]  | |
+|response_time|响应时间|是| [string] |2025-03-28 11:20:52|
+|request_id|请求链路id|是| [string] |8f17ddf49d2342f5b26fd616fade6541.152.17431320520980181|
+|data|响应数据|是| [object] ||
+|total|总数|是| [int]    |0||
+
+## 返回成功示例
+
+```
+{
+    "code": 0,
+    "message": "success",
+    "error_details": [],
+    "request_id": "8f17ddf49d2342f5b26fd616fade6541.152.17431320520980181",
+    "response_time": "2025-03-28 11:20:52",
+    "data": null,
+    "total": 0
+}
+```
+

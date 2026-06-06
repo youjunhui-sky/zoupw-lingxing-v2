@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>简洁运营看板版</title>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <style>
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; color:#111827; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:#f8fafc; }
+    .workspace { display:grid; grid-template-columns:260px 1fr; min-height:100vh; }
+    .sidebar { background:#fff; border-right:1px solid #e5e7eb; padding:22px 18px; position:sticky; top:0; height:100vh; }
+    .brand { font-size:22px; font-weight:800; color:#0f766e; margin-bottom:8px; }
+    .sub { color:#6b7280; font-size:12px; line-height:1.6; }
+    .template-switch { display:grid; gap:8px; margin:22px 0; }
+    .template-switch a { color:#374151; text-decoration:none; border:1px solid #e5e7eb; border-radius:10px; padding:9px 10px; font-size:13px; background:#fff; }
+    .template-switch a.active { color:#0f766e; border-color:#0f766e; background:#ecfdf5; }
+    .controls { display:grid; gap:8px; color:#6b7280; font-size:12px; }
+    .controls label { display:grid; gap:5px; }
+    .controls input, .controls select, .controls button { width:100%; color:#111827; border:1px solid #e5e7eb; border-radius:9px; padding:8px 9px; background:#fff; }
+    .controls button { cursor:pointer; color:#0f766e; font-weight:700; }
+    .rail { display:grid; gap:8px; margin-top:22px; }
+    .rail-item { display:flex; justify-content:space-between; gap:10px; padding:10px; border-radius:10px; background:#f8fafc; border:1px solid #e5e7eb; font-size:12px; }
+    .rail-item span { color:#6b7280; }
+    .rail-item strong { color:#111827; text-align:right; }
+    .content { padding:20px; }
+    .toolbar { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:14px; padding-bottom:14px; border-bottom:1px solid #e5e7eb; }
+    h1 { margin:0; font-size:24px; }
+    h2 { margin:0 0 10px; font-size:16px; }
+    .kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-bottom:12px; }
+    .kpi-card, .card { background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:14px; }
+    .kpi-label { color:#6b7280; font-size:12px; }
+    .kpi-value { margin-top:5px; font-size:21px; font-weight:800; color:#111827; }
+    .kpi-note { display:none; }
+    .main-grid { display:grid; grid-template-columns:1.25fr .75fr; gap:12px; }
+    .side-grid { display:grid; gap:12px; }
+    .chart { width:100%; height:270px; }
+    .trend-chart { height:330px; }
+    table { width:100%; border-collapse:collapse; }
+    th, td { padding:7px 6px; border-bottom:1px solid #e5e7eb; text-align:left; font-size:12px; }
+    th { color:#6b7280; font-weight:700; background:#f8fafc; }
+    .money { text-align:right; font-variant-numeric:tabular-nums; }
+    .data-status { margin-top:18px; padding-top:16px; border-top:1px solid #e5e7eb; }
+    .status-grid { display:grid; gap:8px; }
+    .status-grid div { padding:9px; border:1px solid #e5e7eb; border-radius:9px; background:#f8fafc; }
+    .status-grid span { display:block; color:#6b7280; font-size:11px; }
+    .status-grid strong { display:block; margin-top:4px; color:#111827; font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .status-ok, .status-warnings { margin-top:10px; color:#15803d; font-size:12px; line-height:1.5; }
+    .status-warnings { color:#b45309; }
+    .error { display:none; color:#b91c1c; border-color:#fecaca; margin-bottom:12px; }
+    @media (max-width:1100px) { .workspace { grid-template-columns:1fr; } .sidebar { position:static; height:auto; } .main-grid, .kpis { grid-template-columns:1fr; } .template-switch { grid-template-columns:repeat(3,1fr); } }
+  </style>
+</head>
+<body>
+  <main class="workspace">
+    <aside class="sidebar">
+      <div class="brand">运营工作台</div>
+      <div class="sub" id="report-meta">正在加载数据...</div>
+      <nav class="template-switch" id="template-switch"></nav>
+      <div class="controls" id="dashboard-controls"></div>
+      <div class="sub" id="refresh-meta">每 5 分钟自动刷新</div>
+      <section class="rail" id="metric-rail"></section>
+      <section class="data-status" id="data-status"></section>
+    </aside>
+    <section class="content">
+      <header class="toolbar"><div><h1>领星运营看板</h1><div class="sub">紧凑展示核心指标、排行和明细，适合日常盯数</div></div></header>
+      <section class="card error" id="error-box"></section>
+      <section class="kpis" id="kpis"></section>
+      <section class="main-grid">
+        <div class="card"><h2>趋势指标</h2><div class="chart trend-chart" id="trend-chart"></div></div>
+        <div class="side-grid">
+          <div class="card"><h2>店铺 GMV Top 10</h2><div class="chart" id="shop-chart"></div></div>
+          <div class="card"><h2>SKU 销售 Top 10</h2><div class="chart" id="sku-chart"></div></div>
+        </div>
+      </section>
+      <section class="card" style="margin-top:12px;"><h2>排行榜明细</h2><table><thead><tr><th>类型</th><th>名称</th><th class="money">金额</th><th class="money">数量</th></tr></thead><tbody id="ranking-table"><tr><td colspan="4">正在加载...</td></tr></tbody></table></section>
+    </section>
+  </main>
+  <script>window.DASHBOARD_TEMPLATE={key:'ops',colors:['#0f766e','#7c3aed','#ca8a04'],axis:'#6b7280',split:'#e5e7eb',area:0,trendGrid:{left:48,right:42,top:42,bottom:36},barGrid:{left:78,right:22,top:14,bottom:22},barMaxWidth:16};</script>
+  <script src="/static/dashboard.js"></script>
+</body>
+</html>

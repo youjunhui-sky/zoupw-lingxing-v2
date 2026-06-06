@@ -1,0 +1,8 @@
+[Unit]
+Description=Lingxing ERP (Dashboard + Scheduler)
+Documentation=https://github.com/youjunhui-sky/jinko-rebuild
+# 聚合 dashboard 与 scheduler 两个 service
+# 启停只需要 systemctl start/stop lingxing-erp.target
+
+[Install]
+WantedBy=multi-user.target

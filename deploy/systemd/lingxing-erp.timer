@@ -1,0 +1,13 @@
+[Unit]
+Description=Lingxing ERP health-watch timer (force-restart stalled services)
+# 兜底触发:每 10 分钟检查一次 target 状态
+# 若 dashboard 或 scheduler 进程僵死(OnFailure/watchdog 触发),timer 强拉
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=10min
+AccuracySec=30s
+Unit=lingxing-erp.target
+
+[Install]
+WantedBy=timers.target

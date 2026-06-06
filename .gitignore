@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Environment
+.env
+.env.local
+.env.production
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Database
+*.db
+*.sqlite3
+
+# Ruflo / Claude
+.claude/
+.claude-flow/
+.swarm/
+agentdb.rvf
+agentdb.rvf.lock
+ruvector.db
+.mcp.json
+
+# Docker
+docker/.pgdata/
+docker/.redis/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Tests
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Alembic
+alembic/__pycache__/
+
+# Runtime logs
+logs/
+*.log
+
+# Project
+.venv/
+.ruff_cache/
+.pytest_cache/

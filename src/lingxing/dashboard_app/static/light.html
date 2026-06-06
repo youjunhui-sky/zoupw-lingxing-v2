@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>商务浅色报表版</title>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <style>
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; color:#172033; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:#f6f8fb; }
+    .report { max-width:1280px; margin:0 auto; padding:28px; }
+    .cover { display:flex; justify-content:space-between; gap:24px; align-items:flex-start; padding:26px 30px; border-radius:26px; background:linear-gradient(120deg,#fff,#eff6ff); box-shadow:0 12px 30px rgba(15,23,42,.08); margin-bottom:20px; }
+    h1 { margin:0; font-size:30px; color:#0f172a; }
+    .sub { margin-top:8px; color:#64748b; font-size:13px; }
+    .template-switch { display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+    .template-switch a { color:#64748b; text-decoration:none; border:1px solid #dbe3ef; border-radius:999px; padding:6px 10px; font-size:12px; background:#fff; }
+    .template-switch a.active { color:#1d4ed8; border-color:#2563eb; background:#eff6ff; }
+    .controls { display:flex; justify-content:flex-end; align-items:center; gap:8px; flex-wrap:wrap; color:#64748b; font-size:12px; }
+    .controls label { display:flex; align-items:center; gap:6px; }
+    .controls input, .controls select, .controls button { color:#0f172a; border:1px solid #dbe3ef; border-radius:999px; padding:6px 10px; background:#fff; }
+    .controls button { cursor:pointer; color:#1d4ed8; }
+    .summary-strip { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin-bottom:20px; }
+    .summary-card, .card { background:#fff; border:1px solid #e2e8f0; border-radius:20px; box-shadow:0 12px 30px rgba(15,23,42,.06); }
+    .summary-card { padding:18px; }
+    .summary-label { color:#64748b; font-size:13px; }
+    .summary-value { margin-top:8px; font-size:28px; font-weight:800; color:#1d4ed8; }
+    .summary-note { margin-top:6px; color:#94a3b8; font-size:12px; }
+    .section { margin-bottom:20px; }
+    .section-title { display:flex; justify-content:space-between; align-items:center; margin:0 0 10px; }
+    h2 { margin:0; font-size:18px; color:#0f172a; }
+    .card { padding:20px; }
+    .chart { width:100%; height:340px; }
+    .trend-chart { height:390px; }
+    .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+    table { width:100%; border-collapse:collapse; }
+    th, td { padding:11px 8px; border-bottom:1px solid #e2e8f0; text-align:left; font-size:13px; }
+    th { color:#64748b; font-weight:700; background:#f8fafc; }
+    .money { text-align:right; font-variant-numeric:tabular-nums; }
+    .data-status { margin-bottom:20px; }
+    .status-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+    .status-grid div { background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; padding:12px; }
+    .status-grid span { display:block; color:#64748b; font-size:12px; }
+    .status-grid strong { display:block; margin-top:6px; color:#0f172a; font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .status-ok, .status-warnings { margin-top:12px; color:#15803d; font-size:13px; }
+    .status-warnings { color:#b45309; }
+    .error { display:none; color:#b91c1c; border-color:#fecaca; margin-bottom:18px; }
+    @media (max-width:900px) { .report { padding:18px; } .cover { display:block; } .summary-strip, .grid-2, .status-grid { grid-template-columns:1fr; } .template-switch { justify-content:flex-start; margin-top:14px; } }
+  </style>
+</head>
+<body>
+  <main class="report">
+    <header class="cover">
+      <div>
+        <h1>领星运营商务报表</h1>
+        <div class="sub" id="report-meta">正在加载数据...</div>
+      </div>
+      <div>
+        <nav class="template-switch" id="template-switch"></nav>
+        <div class="controls" id="dashboard-controls"></div>
+        <div class="sub" id="refresh-meta">每 5 分钟自动刷新</div>
+      </div>
+    </header>
+    <section class="card error" id="error-box"></section>
+    <section class="summary-strip">
+      <div class="summary-card"><div class="summary-label">今日 GMV</div><div class="summary-value" id="hero-gmv">-</div><div class="summary-note">核心销售指标</div></div>
+      <div class="summary-card"><div class="summary-label">今日订单</div><div class="summary-value" id="hero-orders">-</div><div class="summary-note">订单转化表现</div></div>
+      <div class="summary-card"><div class="summary-label">本周 GMV</div><div class="summary-value" id="hero-week">-</div><div class="summary-note">周累计经营规模</div></div>
+      <div class="summary-card"><div class="summary-label">ACOS</div><div class="summary-value" id="hero-acos">-</div><div class="summary-note">广告效率指标</div></div>
+    </section>
+    <section class="section card data-status" id="data-status"></section>
+    <section class="section card"><div class="section-title"><h2>趋势分析</h2><span class="sub">GMV / 订单 / 客单价</span></div><div class="chart trend-chart" id="trend-chart"></div></section>
+    <section class="section grid-2">
+      <div class="card"><div class="section-title"><h2>店铺 GMV 排名</h2></div><div class="chart" id="shop-chart"></div></div>
+      <div class="card"><div class="section-title"><h2>SKU 销售排名</h2></div><div class="chart" id="sku-chart"></div></div>
+    </section>
+    <section class="section card"><div class="section-title"><h2>排行榜明细</h2><span class="sub">经营明细口径</span></div><table><thead><tr><th>类型</th><th>名称</th><th class="money">金额</th><th class="money">数量</th></tr></thead><tbody id="ranking-table"><tr><td colspan="4">正在加载...</td></tr></tbody></table></section>
+  </main>
+  <script>window.DASHBOARD_TEMPLATE={key:'light',colors:['#2563eb','#14b8a6','#f97316'],axis:'#64748b',split:'#e2e8f0',area:.08,trendGrid:{left:52,right:52,top:42,bottom:40},barGrid:{left:92,right:28,top:18,bottom:24},barMaxWidth:24};</script>
+  <script src="/static/dashboard.js"></script>
+</body>
+</html>

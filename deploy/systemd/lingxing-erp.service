@@ -1,0 +1,45 @@
+[Unit]
+Description=Lingxing ERP Dashboard (FastAPI)
+Documentation=https://github.com/youjunhui-sky/jinko-rebuild
+# 依赖 PostgreSQL 与 Redis;若未本地运行可去掉这两行
+After=network-online.target postgresql.service redis-server.service
+Wants=network-online.target
+# 与 scheduler 互相独立,可单独启停
+PartOf=lingxing-erp.target
+
+[Service]
+Type=simple
+User=lingxing
+Group=lingxing
+WorkingDirectory=/opt/lingxing-erp
+Environment="PYTHONPATH=/opt/lingxing-erp/src"
+EnvironmentFile=/opt/lingxing-erp/.env
+
+ExecStart=/opt/lingxing-erp/.venv/bin/uvicorn \
+    lingxing.dashboard_app.main:app \
+    --host 0.0.0.0 --port 8000 \
+    --workers 1 \
+    --log-level info
+
+# 进程挂了自动拉起;timer 会作为兜底二次重启
+Restart=always
+RestartSec=5
+StartLimitBurst=5
+StartLimitIntervalSec=60
+
+# 资源限制(可按机器调)
+LimitNOFILE=65535
+MemoryMax=2G
+
+# 安全加固(可选;启用前确认 .env 路径)
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/lingxing-erp/logs /opt/lingxing-erp/.cache
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=lingxing-erp
+
+[Install]
+WantedBy=lingxing-erp.target

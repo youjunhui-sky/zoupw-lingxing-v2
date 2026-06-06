@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>科技深色大屏版</title>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <style>
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; color:#e5e7eb; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:radial-gradient(circle at 20% 10%,rgba(56,189,248,.22),transparent 30%),radial-gradient(circle at 82% 8%,rgba(129,140,248,.2),transparent 28%),linear-gradient(135deg,#020617,#0f172a 50%,#172554); }
+    .screen { width:min(1600px,100%); margin:0 auto; padding:24px; }
+    .topbar { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:18px; margin-bottom:18px; }
+    .title { text-align:center; }
+    h1 { margin:0; font-size:38px; letter-spacing:.12em; text-shadow:0 0 24px rgba(56,189,248,.42); }
+    .sub { color:#94a3b8; margin-top:8px; font-size:13px; }
+    .template-switch { display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap; }
+    .template-switch a { color:#94a3b8; text-decoration:none; border:1px solid rgba(56,189,248,.28); border-radius:999px; padding:6px 10px; font-size:12px; background:rgba(15,23,42,.72); }
+    .template-switch a.active { color:#e0f2fe; border-color:#38bdf8; }
+    .controls { display:flex; justify-content:flex-end; align-items:center; gap:8px; flex-wrap:wrap; margin-top:10px; color:#94a3b8; font-size:12px; }
+    .controls label { display:flex; align-items:center; gap:6px; }
+    .controls input, .controls select, .controls button { color:#e0f2fe; border:1px solid rgba(56,189,248,.28); border-radius:999px; padding:6px 10px; background:rgba(15,23,42,.72); }
+    .controls button { cursor:pointer; }
+    .hero { display:grid; grid-template-columns:1.1fr 2.2fr 1.1fr; gap:18px; align-items:stretch; }
+    .stack { display:grid; gap:18px; }
+    .panel { background:linear-gradient(180deg,rgba(17,24,39,.88),rgba(15,23,42,.72)); border:1px solid rgba(56,189,248,.22); border-radius:20px; padding:18px; box-shadow:0 18px 50px rgba(0,0,0,.28),0 0 36px rgba(56,189,248,.07) inset; }
+    .headline { min-height:150px; display:grid; place-items:center; text-align:center; }
+    .headline .value { font-size:54px; font-weight:900; color:#e0f2fe; text-shadow:0 0 28px rgba(56,189,248,.42); }
+    .headline .label { color:#94a3b8; margin-top:8px; }
+    .kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin-top:18px; }
+    .kpi-card { background:rgba(15,23,42,.62); border:1px solid rgba(148,163,184,.18); border-radius:16px; padding:16px; }
+    .kpi-label { color:#94a3b8; font-size:12px; }
+    .kpi-value { margin-top:6px; font-size:24px; font-weight:800; color:#e0f2fe; }
+    .kpi-note { margin-top:6px; color:#64748b; font-size:12px; }
+    h2 { margin:0 0 12px; font-size:18px; color:#bae6fd; }
+    .chart { width:100%; height:320px; }
+    .main-chart { height:560px; }
+    .top-row { display:flex; justify-content:space-between; gap:12px; padding:10px 0; border-bottom:1px solid rgba(148,163,184,.14); font-size:13px; }
+    .top-row span { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+    .top-row strong { color:#7dd3fc; white-space:nowrap; }
+    .data-status { margin-top:18px; }
+    .status-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+    .status-grid div { background:rgba(15,23,42,.62); border:1px solid rgba(148,163,184,.16); border-radius:12px; padding:12px; }
+    .status-grid span { display:block; color:#94a3b8; font-size:12px; }
+    .status-grid strong { display:block; margin-top:6px; color:#e0f2fe; font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .status-ok, .status-warnings { margin-top:12px; color:#86efac; font-size:13px; }
+    .status-warnings { color:#fcd34d; }
+    .error { display:none; margin-bottom:18px; border-color:rgba(239,68,68,.45); color:#fecaca; }
+    @media (max-width:1100px) { .hero { grid-template-columns:1fr; } .kpis, .status-grid { grid-template-columns:repeat(2,1fr); } .topbar { grid-template-columns:1fr; } .template-switch { justify-content:center; } }
+  </style>
+</head>
+<body>
+  <main class="screen">
+    <header class="topbar">
+      <div class="sub" id="report-meta">正在加载数据...</div>
+      <div class="title"><h1>领星运营科技驾驶舱</h1><div class="sub">全局经营态势监控大屏</div></div>
+      <div><nav class="template-switch" id="template-switch"></nav><div class="controls" id="dashboard-controls"></div></div>
+    </header>
+    <section class="panel error" id="error-box"></section>
+    <section class="hero">
+      <aside class="stack">
+        <div class="panel headline"><div><div class="value" id="hero-gmv">-</div><div class="label">今日 GMV</div></div></div>
+        <div class="panel"><h2>店铺排行快览</h2><div id="shop-list"></div></div>
+      </aside>
+      <section class="panel"><h2>GMV / 订单 / 客单价趋势</h2><div class="chart main-chart" id="trend-chart"></div></section>
+      <aside class="stack">
+        <div class="panel headline"><div><div class="value" id="hero-orders">-</div><div class="label">今日订单数</div></div></div>
+        <div class="panel"><h2>SKU 销售快览</h2><div id="sku-list"></div></div>
+      </aside>
+    </section>
+    <section class="panel data-status" id="data-status"></section>
+    <section class="kpis" id="kpis"></section>
+  </main>
+  <script>window.DASHBOARD_TEMPLATE={key:'tech',colors:['#38bdf8','#818cf8','#22c55e'],axis:'#94a3b8',split:'rgba(148,163,184,.14)',area:.18,trendGrid:{left:58,right:58,top:46,bottom:42},barGrid:{left:92,right:28,top:18,bottom:24},barMaxWidth:20};</script>
+  <script src="/static/dashboard.js"></script>
+</body>
+</html>
