@@ -51,6 +51,7 @@ TEMPLATE_FILES = {
     "tech": "tech.html",
     "light": "light.html",
     "ops": "ops.html",
+    "slow-moving": "slow_moving.html",
 }
 
 
@@ -94,8 +95,17 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 app = FastAPI(title="Lingxing Dashboard", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
+# FBA 断货预警子路由 (独立 router, 便于独立测试)
+from .slow_moving import router as slow_moving_router  # noqa: E402
+app.include_router(slow_moving_router)
 
-def get_session_factory(request: Request) -> async_sessionmaker[AsyncSession]:
+
+from .dependencies import get_session_factory  # noqa: E402,F401  (公开给子模块 router 使用)
+
+
+def _legacy_get_session_factory_compat_shim(  # noqa: F811
+    request: Request,
+) -> async_sessionmaker[AsyncSession]:
     return request.app.state.session_factory
 
 
