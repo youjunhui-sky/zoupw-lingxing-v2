@@ -151,9 +151,22 @@ class SyncScheduler:
             replace_existing=True,
         )
 
+        self._scheduler.add_job(
+            self._compute_slow_moving_alerts,
+            "cron",
+            hour=2,
+            minute=30,
+            id="compute_slow_moving_alerts",
+            name="FBA 断货预警",
+            replace_existing=True,
+            max_instances=1,
+            coalesce=True,
+            misfire_grace_time=3600,
+        )
+
         logger.info(
-            "已注册 %d 个调度任务: 订单(每%dmin) 库存(每%dmin) 广告(每天6:00) 产品列表(每2h) 日报(工作日9:00) 店铺(每天2:00) 市场(每天2:10) 汇率(每月1号3:00)",
-            8, order_interval, inventory_interval,
+            "已注册 %d 个调度任务: 订单(每%dmin) 库存(每%dmin) 广告(每天6:00) 产品列表(每2h) 日报(工作日9:00) 店铺(每天2:00) 市场(每天2:10) 汇率(每月1号3:00) 断货预警(每天2:30)",
+            9, order_interval, inventory_interval,
         )
 
     def _log_job_event(self, event: JobExecutionEvent) -> None:
@@ -296,6 +309,25 @@ class SyncScheduler:
             logger.exception("汇率同步失败")
         else:
             logger.info("汇率同步完成")
+
+    async def _compute_slow_moving_alerts(self) -> None:
+        """FBA 断货预警计算 — 每日 02:30 跑.
+
+        设计依据: docs/slow-moving-mvp.md §3
+        """
+        logger.info("开始计算 FBA 断货预警...")
+        try:
+            from lingxing.sync.slow_moving import compute_slow_moving_alerts
+            result = await compute_slow_moving_alerts(self._ctx)
+            logger.info(
+                "FBA 断货预警完成: 评估=%d, 红灯=%d (新=%d, 持续=%d), 解除=%d",
+                result["evaluated"], result["active"],
+                result["new_active"], result["kept_active"], result["resolved"],
+            )
+        except Exception:
+            logger.exception("FBA 断货预警失败")
+        else:
+            logger.info("FBA 断货预警结束")
 
 
 # ---- 入口函数 ----
