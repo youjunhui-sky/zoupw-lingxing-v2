@@ -57,3 +57,7 @@ logs/
 .pytest_cache/
 # encrypt_env.py 生成的明文备份(同 .env,保护明文不进 commit)
 .env.bak
+.env.*.bak
+.env.local.original.bak
+.env.enc.original.bak
+.env.plaintext.original.bak
