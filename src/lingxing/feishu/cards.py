@@ -54,12 +54,12 @@ def daily_report_card(
             f"| 客单价 | ¥{avg_order_value:,.2f} |\n"
             f"| 退款率 | {refund_rate:.1%} |\n"
             f"| ACOS | {acos:.1%} |\n"
-            f"| 库存预警 | {alert_icon} {inventory_alerts} SKU |"
+            f"| FBA 断货预警 | {alert_icon} {inventory_alerts} ASIN |"
         ),
     ]
 
     if inventory_alerts > 0:
-        elements.append(_markdown(f"⚠️ **{inventory_alerts} 个 SKU 库存预警**，请关注补货"))
+        elements.append(_markdown(f"⚠️ **{inventory_alerts} 个 ASIN 断货/库存紧**，请关注补货"))
 
     if dashboard_url:
         elements.extend([_divider(), _action_button("查看看板", dashboard_url)])

@@ -112,6 +112,12 @@ async def compute_slow_moving_alerts(
             )
             threshold_used = _calc_threshold_days(avg_daily_sold, thr)
 
+            # 修复 2026-06-08: 过去 30 天无销售 (avg=0) 的 ASIN 不算"断货" —
+            # _classify_reason 已把它标为"30 天无销售",归入滞销预警 (V2) 处理。
+            # 旧逻辑下 days_of_cover=0/0.01=0 → 0<任何 threshold → 永远 active,
+            # 导致 904 条 (95%) 误报。
+            if avg_daily_sold == 0:
+                continue
             is_active = days_of_cover < threshold_used
             owner_name = _resolve_owner(
                 asin=asin, sku=sku, category=category, sid=sid,

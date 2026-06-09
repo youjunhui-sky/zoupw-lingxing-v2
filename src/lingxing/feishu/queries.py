@@ -40,10 +40,13 @@ async def query_daily_metrics(
     """), {"ad_report_date": ad_report_date})
     acos = float(r2.scalar() or 0)
 
-    # 库存预警（< 10 天可售）
+    # 库存预警 = V1 慢查询 active 数 (与 slow_moving_event 对齐)
+    # 修复 2026-06-08: 原口径 "fba_available<10" 数到 1099 SKU, 与 V1 active (44 ASIN) 差 25 倍
+    # 口径不一致, 飞书卡片文案失真, 东家审完被吐槽
     r3 = await session.execute(text("""
-        SELECT COUNT(*) FROM ods_fba_inventory
-        WHERE snapshot_date = CURRENT_DATE AND quantity_available < 10
+        SELECT COUNT(*) FROM slow_moving_event
+        WHERE status = 'active'
+          AND event_date = (SELECT MAX(event_date) FROM slow_moving_event)
     """))
     inventory_alerts = int(r3.scalar() or 0)
 
